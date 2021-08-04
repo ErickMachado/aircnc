@@ -1,5 +1,5 @@
 <template>
-  <form class="recover-form" @submit.prevent>
+  <form class="recover-form" @submit.prevent="handlePasswordRecover">
     <div class="field">
       <label for="email">E-mail</label>
       <input
@@ -9,15 +9,17 @@
         placeholder="E-mail cadastrado"
       />
     </div>
-    <Button text="Criar minha conta" :disabled="!email" />
+    <Button text="Recuperar senha" :disabled="!email || isLoading" />
     <RouterLink class="recover-form__signin-link" to="/">
-      Recuperar senha
+      Entrar na minha conta
     </RouterLink>
   </form>
 </template>
 
 <script>
 import Button from '@/components/Button.vue'
+import FirebaseService from '@/services/firebase.js'
+import { TYPE } from 'vue-toastification'
 import Vue from 'vue'
 
 export default Vue.extend({
@@ -26,7 +28,26 @@ export default Vue.extend({
   },
   data() {
     return {
-      email: ''
+      email: '',
+      isLoading: false
+    }
+  },
+  methods: {
+    async handlePasswordRecover() {
+      this.isLoading = true
+
+      try {
+        await FirebaseService.resetPassword(this.email)
+        this.$toast('Instruções enviadas para o seu e-mail', {
+          type: TYPE.SUCCESS
+        })
+      } catch (error) {
+        this.$toast(error, {
+          type: TYPE.ERROR
+        })
+      } finally {
+        this.isLoading = false
+      }
     }
   },
   name: 'PasswordRecover'

@@ -45,6 +45,14 @@ class FirebaseService {
       return Promise.reject(messageTranslate(error.message))
     }
   }
+
+  async resetPassword(email) {
+    try {
+      await firebase.auth().sendPasswordResetEmail(email)
+    } catch (error) {
+      return Promise.reject(messageTranslate(error.message))
+    }
+  }
 }
 
 export default new FirebaseService()
