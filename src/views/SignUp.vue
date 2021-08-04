@@ -70,6 +70,12 @@ export default Vue.extend({
       try {
         const user = await FirebaseService.createAccount(email, name, password)
         localStorage.setItem('user', JSON.stringify(user))
+        this.$toast('Conta criada com sucesso 🎊', {
+          type: TYPE.SUCCESS
+        })
+        this.credentials.email = ''
+        this.credentials.name = ''
+        this.credentials.password = ''
       } catch (error) {
         this.$toast(error, {
           type: TYPE.ERROR
@@ -79,7 +85,7 @@ export default Vue.extend({
       }
     }
   },
-  name: 'Login'
+  name: 'SignUp'
 })
 </script>
 

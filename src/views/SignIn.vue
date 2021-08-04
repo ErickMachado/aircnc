@@ -1,5 +1,5 @@
 <template>
-  <form class="signin-form" @submit.prevent>
+  <form class="signin-form" @submit.prevent="handleAuthentication">
     <div class="field">
       <label for="email">E-mail</label>
       <input
@@ -30,6 +30,8 @@
 
 <script>
 import Button from '@/components/Button.vue'
+import FirebaseService from '@/services/firebase.js'
+import { TYPE } from 'vue-toastification'
 import Vue from 'vue'
 
 export default Vue.extend({
@@ -38,7 +40,9 @@ export default Vue.extend({
   },
   computed: {
     isDisabled() {
-      return !this.credentials.email || !this.credentials.password
+      return (
+        !this.credentials.email || !this.credentials.password || this.isLoading
+      )
     }
   },
   data() {
@@ -46,10 +50,28 @@ export default Vue.extend({
       credentials: {
         email: '',
         password: ''
+      },
+      isLoading: false
+    }
+  },
+  methods: {
+    async handleAuthentication() {
+      this.isLoading = true
+      const { email, password } = this.credentials
+
+      try {
+        await FirebaseService.authenticate(email, password)
+        alert('Logado')
+      } catch (error) {
+        this.$toast(error, {
+          type: TYPE.ERROR
+        })
+      } finally {
+        this.isLoading = false
       }
     }
   },
-  name: 'Login'
+  name: 'SignIn'
 })
 </script>
 

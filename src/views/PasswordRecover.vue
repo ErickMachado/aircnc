@@ -29,7 +29,7 @@ export default Vue.extend({
       email: ''
     }
   },
-  name: 'Login'
+  name: 'PasswordRecover'
 })
 </script>
 

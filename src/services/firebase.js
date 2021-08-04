@@ -25,12 +25,22 @@ class FirebaseService {
       await user.updateProfile({
         displayName: name
       })
+      await user.sendEmailVerification()
 
       return {
         email: user.email,
         id: user.uid,
-        name: user.displayName
+        name: user.displayName,
+        verified: user.emailVerified
       }
+    } catch (error) {
+      return Promise.reject(messageTranslate(error.message))
+    }
+  }
+
+  async authenticate(email, password) {
+    try {
+      await firebase.auth().signInWithEmailAndPassword(email, password)
     } catch (error) {
       return Promise.reject(messageTranslate(error.message))
     }
