@@ -1,8 +1,11 @@
 <template>
   <div class="container">
     <div class="settings">
+      <div class="settings__photo">
+        <input type="file" />
+      </div>
       <h2>{{ user.name }}</h2>
-      <form @submit.prevent>
+      <form @submit.prevent="handlePasswordReset">
         <div class="field">
           <label for="name">Nome</label>
           <input v-model="user.name" type="text" id="name" disabled />
@@ -12,16 +15,8 @@
           <input v-model="user.email" type="email" id="email" disabled />
         </div>
         <div class="field">
-          <label for="password">Senha</label>
+          <label for="password">Nova senha</label>
           <input v-model="password" type="password" id="password" />
-        </div>
-        <div class="field">
-          <label for="passwordConfirmation">Repita a Senha</label>
-          <input
-            v-model="passwordConfirmation"
-            type="password"
-            id="passwordConfirmation"
-          />
         </div>
         <Button text="Salvar" :disabled="isDisabled" />
       </form>
@@ -41,6 +36,7 @@
 import Button from '@/components/Button.vue'
 import FirebaseService from '@/services/firebase.js'
 import Vue from 'vue'
+import { TYPE } from 'vue-toastification'
 
 export default Vue.extend({
   beforeRouteEnter(to, from, next) {
@@ -58,22 +54,32 @@ export default Vue.extend({
   },
   computed: {
     isDisabled() {
-      return (
-        !this.password ||
-        !this.passwordConfirmation ||
-        this.password.length < 6 ||
-        this.passwordConfirmation.length < 6
-      )
+      return !this.password || this.password.length < 6 || this.isLoading
     }
   },
   data() {
     return {
+      isLoading: false,
       password: '',
-      passwordConfirmation: '',
       user: {}
     }
   },
   methods: {
+    async handlePasswordReset() {
+      this.isLoading = true
+      try {
+        await FirebaseService.passwordReset(this.password)
+        this.$toast('Senha atualizada com sucesso', {
+          type: TYPE.SUCCESS
+        })
+      } catch (error) {
+        this.$toast(error.message, {
+          type: TYPE.ERROR
+        })
+      } finally {
+        this.isLoading = false
+      }
+    },
     async handleLogout() {
       await FirebaseService.logout()
       localStorage.removeItem('user')
@@ -96,6 +102,43 @@ export default Vue.extend({
   max-width: 375px;
   padding: 3.2rem;
   width: 100%;
+}
+
+.settings__photo {
+  border: 1px solid var(--primary);
+  border-radius: 50%;
+  height: 80px;
+  margin: 0 auto 1.6rem;
+  position: relative;
+  width: 80px;
+}
+
+.settings__photo:hover::after {
+  align-items: center;
+  background-color: rgba(0, 0, 0, 0.3);
+  border-radius: 50%;
+  color: #fff;
+  content: 'Trocar foto';
+  display: flex;
+  font-size: 1.4rem;
+  height: 100%;
+  line-height: 1.2;
+  padding: 0 0.2rem;
+  position: absolute;
+  text-align: center;
+  transition: all 0.3s ease;
+  width: 100%;
+}
+
+.settings__photo input {
+  cursor: pointer;
+  height: 100%;
+  left: 0;
+  opacity: 0;
+  position: absolute;
+  top: 0;
+  width: 100%;
+  z-index: 10;
 }
 
 .settings h2 {

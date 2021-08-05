@@ -1,11 +1,18 @@
 <template>
-  <RouterView />
+  <div id="app">
+    <LoadingScreen />
+    <RouterView />
+  </div>
 </template>
 
 <script>
+import LoadingScreen from '@/components/LoadingScreen.vue'
 import Vue from 'vue'
 
 export default Vue.extend({
+  components: {
+    LoadingScreen
+  },
   name: 'App'
 })
 </script>

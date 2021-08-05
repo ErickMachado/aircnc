@@ -68,8 +68,12 @@ class FirebaseService {
   }
 
   async createSpot(spot) {
-    const newSpot = await firebase.database().ref('spots').push(spot)
-    await firebase.storage().ref(`spot_images/${newSpot.key}`).put(spot.image)
+    try {
+      const newSpot = await firebase.database().ref('spots').push(spot)
+      await firebase.storage().ref(`spot_images/${newSpot.key}`).put(spot.image)
+    } catch (error) {
+      return Promise.reject(error.message)
+    }
   }
 
   async listSpots() {
@@ -87,6 +91,14 @@ class FirebaseService {
     })
 
     return spotsFormated
+  }
+
+  async passwordReset(password) {
+    try {
+      await firebase.auth().currentUser.updatePassword(password)
+    } catch (error) {
+      return Promise.reject(error)
+    }
   }
 }
 

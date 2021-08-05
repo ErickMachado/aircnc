@@ -26,7 +26,7 @@
         />
       </div>
       <div class="field">
-        <label for="price">Preço</label>
+        <label for="price">Preço por dia</label>
         <input
           v-model.number="spot.price"
           type="number"
@@ -35,15 +35,15 @@
         />
         <span class="message">Deixe zerado caso seja gratuito</span>
       </div>
-      <h3>Tecnologias que a empresa utiliza</h3>
+      <h4>Tecnologias que a empresa utiliza</h4>
       <div class="field">
-        <input v-model="tagValue" @keydown.enter="addTag" type="text" />
+        <input v-model="tagValue" @keydown.enter.prevent="addTag" type="text" />
         <span class="message">Separe por virgula e aperte enter</span>
       </div>
       <ul class="tech__list">
         <li v-for="(tech, index) in techs" :key="index" class="tech__item">
           <span>{{ tech }}</span>
-          <span @click="removeTag">X</span>
+          <span @click="removeTag(index)">X</span>
         </li>
       </ul>
       <Button text="Cadastrar spot" :disabled="isDisabled" />
@@ -55,6 +55,7 @@
 import Button from '@/components/Button.vue'
 import FirebaseService from '@/services/firebase'
 import Vue from 'vue'
+import { TYPE } from 'vue-toastification'
 
 export default Vue.extend({
   components: {
@@ -63,12 +64,16 @@ export default Vue.extend({
   computed: {
     isDisabled() {
       return (
-        !this.spot.company || this.techs.length === 0 || !this.imagePreviewUrl
+        !this.spot.company ||
+        this.techs.length === 0 ||
+        !this.imagePreviewUrl ||
+        this.isLoading
       )
     }
   },
   data() {
     return {
+      isLoading: false,
       imageBlob: {},
       imagePreviewUrl: '',
       spot: {
@@ -81,22 +86,28 @@ export default Vue.extend({
   },
   methods: {
     addTag() {
-      if (this.tagValue.includes(',')) {
-        const tags = this.tagValue.split(',')
-        for (const tag of tags) {
-          tag.trim().toLowerCase()
-          if (this.techs.includes(tag)) {
+      if (this.techs.length < 3) {
+        if (this.tagValue.includes(',')) {
+          const tags = this.tagValue.split(',')
+          for (const tag of tags) {
+            tag.trim().toLowerCase()
+            if (this.techs.includes(tag)) {
+              alert('Tecnologia ja adicionada')
+            } else {
+              this.techs.push(tag)
+            }
+          }
+        } else {
+          if (this.techs.includes(this.tagValue.trim().toLowerCase())) {
             alert('Tecnologia ja adicionada')
           } else {
-            this.techs.push(tag)
+            this.techs.push(this.tagValue.trim().toLowerCase())
           }
         }
       } else {
-        if (this.techs.includes(this.tagValue.trim().toLowerCase())) {
-          alert('Tecnologia ja adicionada')
-        } else {
-          this.techs.push(this.tagValue.trim().toLowerCase())
-        }
+        this.$toast('Apenas 3 tecnologias podem ser adicionadas', {
+          type: TYPE.INFO
+        })
       }
 
       this.tagValue = ''
@@ -106,15 +117,27 @@ export default Vue.extend({
       this.imagePreviewUrl = URL.createObjectURL(this.imageBlob)
     },
     async handleSpotCreation() {
+      this.isLoading = true
       try {
         await FirebaseService.createSpot({
           authorId: JSON.parse(localStorage.getItem('user')).id,
           company: this.spot.company,
           image: this.imageBlob,
-          price: this.spot.price
+          price: this.spot.price,
+          techs: this.techs
         })
-      } catch (_) {
-        alert('Deu ruim!')
+        this.$toast('Spot cadastrado com sucesso 🎊', {
+          type: TYPE.SUCCESS
+        })
+        this.spot = {}
+        this.imagePreviewUrl = ''
+        this.techs = []
+      } catch (error) {
+        this.$toast(error, {
+          type: TYPE.ERROR
+        })
+      } finally {
+        this.isLoading = false
       }
     },
     removeTag(index) {
