@@ -35,6 +35,17 @@
         />
         <span class="message">Deixe zerado caso seja gratuito</span>
       </div>
+      <h3>Tecnologias que a empresa utiliza</h3>
+      <div class="field">
+        <input v-model="tagValue" @keydown.enter="addTag" type="text" />
+        <span class="message">Separe por virgula e aperte enter</span>
+      </div>
+      <ul class="tech__list">
+        <li v-for="(tech, index) in techs" :key="index" class="tech__item">
+          <span>{{ tech }}</span>
+          <span @click="removeTag">X</span>
+        </li>
+      </ul>
       <Button text="Cadastrar spot" :disabled="isDisabled" />
     </form>
   </div>
@@ -51,23 +62,45 @@ export default Vue.extend({
   },
   computed: {
     isDisabled() {
-      return !this.spot.company
+      return (
+        !this.spot.company || this.techs.length === 0 || !this.imagePreviewUrl
+      )
     }
-  },
-  async created() {
-    console.log(await FirebaseService.listSpots())
   },
   data() {
     return {
+      imageBlob: {},
+      imagePreviewUrl: '',
       spot: {
         company: '',
         price: 0
       },
-      imageBlob: {},
-      imagePreviewUrl: ''
+      tagValue: '',
+      techs: []
     }
   },
   methods: {
+    addTag() {
+      if (this.tagValue.includes(',')) {
+        const tags = this.tagValue.split(',')
+        for (const tag of tags) {
+          tag.trim().toLowerCase()
+          if (this.techs.includes(tag)) {
+            alert('Tecnologia ja adicionada')
+          } else {
+            this.techs.push(tag)
+          }
+        }
+      } else {
+        if (this.techs.includes(this.tagValue.trim().toLowerCase())) {
+          alert('Tecnologia ja adicionada')
+        } else {
+          this.techs.push(this.tagValue.trim().toLowerCase())
+        }
+      }
+
+      this.tagValue = ''
+    },
     handleImagePreview(event) {
       this.imageBlob = event.target.files[0]
       this.imagePreviewUrl = URL.createObjectURL(this.imageBlob)
@@ -83,6 +116,9 @@ export default Vue.extend({
       } catch (_) {
         alert('Deu ruim!')
       }
+    },
+    removeTag(index) {
+      this.techs.splice(index, 1)
     }
   },
   name: 'NewSpot'
@@ -148,5 +184,40 @@ export default Vue.extend({
 .message {
   color: rgba(0, 0, 0, 0.3);
   font-size: 1.4rem;
+}
+
+.tech__list {
+  align-items: center;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.8rem;
+}
+
+.tech__item {
+  align-items: center;
+  background-color: var(--primary);
+  border-radius: 999px;
+  color: var(--light);
+  display: flex;
+  font-weight: 600;
+  font-size: 1.2rem;
+  gap: 0.4rem;
+  padding: 0.4rem 0.8rem;
+}
+
+.tech__item span:last-child {
+  align-items: center;
+  align-items: center;
+  background-color: var(--light);
+  border: none;
+  border-radius: 50%;
+  color: var(--primary);
+  cursor: pointer;
+  display: flex;
+  font-size: 1.2rem;
+  height: 16px;
+  justify-content: center;
+  line-height: 1;
+  width: 16px;
 }
 </style>
