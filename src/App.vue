@@ -56,6 +56,17 @@ svg {
   max-width: 100%;
 }
 
+ul {
+  list-style: none;
+}
+
+.container {
+  margin: 0 auto;
+  max-width: 1150px;
+  padding: 0 1.5rem;
+  width: 100%;
+}
+
 .field > label {
   display: block;
   font-size: 1.4rem;
@@ -64,12 +75,18 @@ svg {
 .field > input {
   border: 1px solid rgba(0, 0, 0, 0.3);
   border-radius: 0.2rem;
+  display: block;
   font-family: 'Poppins', sans-serif;
   font-size: 1.6rem;
   padding: 0.8rem;
+  width: 100%;
 }
 
 .field > input:focus {
   border: 1px solid var(--primary);
+}
+
+.field > input[disabled] {
+  cursor: not-allowed;
 }
 </style>

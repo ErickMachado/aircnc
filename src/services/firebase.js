@@ -1,6 +1,7 @@
 import firebase from 'firebase/app'
 import 'firebase/auth'
 import 'firebase/database'
+import 'firebase/storage'
 import messageTranslate from '@/utils/feedbackMessageTranslate'
 
 class FirebaseService {
@@ -40,10 +41,22 @@ class FirebaseService {
 
   async authenticate(email, password) {
     try {
-      await firebase.auth().signInWithEmailAndPassword(email, password)
+      const { user } = await firebase
+        .auth()
+        .signInWithEmailAndPassword(email, password)
+      return {
+        email: user.email,
+        id: user.uid,
+        name: user.displayName,
+        verified: user.emailVerified
+      }
     } catch (error) {
       return Promise.reject(messageTranslate(error.message))
     }
+  }
+
+  async logout() {
+    await firebase.auth().signOut()
   }
 
   async resetPassword(email) {
@@ -52,6 +65,28 @@ class FirebaseService {
     } catch (error) {
       return Promise.reject(messageTranslate(error.message))
     }
+  }
+
+  async createSpot(spot) {
+    const newSpot = await firebase.database().ref('spots').push(spot)
+    await firebase.storage().ref(`spot_images/${newSpot.key}`).put(spot.image)
+  }
+
+  async listSpots() {
+    const spots = await firebase.database().ref('spots').get()
+    const spotsId = Object.keys(spots.val())
+    const spotsData = Object.values(spots.val())
+    const spotsFormated = []
+
+    spotsId.forEach(async (id, index) => {
+      const image = firebase.storage().ref(`spot_images/${id}`)
+      spotsFormated.push({
+        ...spotsData[index],
+        image: await image.getDownloadURL()
+      })
+    })
+
+    return spotsFormated
   }
 }
 

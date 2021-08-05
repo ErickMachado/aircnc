@@ -35,6 +35,13 @@ import { TYPE } from 'vue-toastification'
 import Vue from 'vue'
 
 export default Vue.extend({
+  beforeRouteEnter(to, from, next) {
+    const user = localStorage.getItem('user')
+
+    if (user) next('/dashboard')
+
+    next()
+  },
   components: {
     Button
   },
@@ -60,8 +67,9 @@ export default Vue.extend({
       const { email, password } = this.credentials
 
       try {
-        await FirebaseService.authenticate(email, password)
-        alert('Logado')
+        const user = await FirebaseService.authenticate(email, password)
+        localStorage.setItem('user', JSON.stringify(user))
+        this.$router.push('/dashboard')
       } catch (error) {
         this.$toast(error, {
           type: TYPE.ERROR
