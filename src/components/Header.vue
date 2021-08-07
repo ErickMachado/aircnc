@@ -32,28 +32,33 @@
         <p>
           Olá, <strong>{{ firstName }}</strong>
         </p>
+        <img
+          v-show="getUser.avatar"
+          :src="getUser.avatar"
+          :alt="getUser.name"
+        />
       </div>
     </div>
   </header>
 </template>
 
 <script>
+import { mapActions, mapGetters } from 'vuex'
 import Vue from 'vue'
 
 export default Vue.extend({
-  created() {
-    this.user = JSON.parse(localStorage.getItem('user'))
+  async created() {
+    await this.syncUser()
   },
   computed: {
+    ...mapGetters(['getUser']),
     firstName() {
-      const name = this.user.name.split(' ')
+      const name = this.getUser.name.split(' ')
       return `${name[0].charAt(0).toUpperCase()}${name[0].substring(1)}`
     }
   },
-  data() {
-    return {
-      user: {}
-    }
+  methods: {
+    ...mapActions(['syncUser'])
   },
   name: 'Header'
 })
@@ -108,7 +113,20 @@ export default Vue.extend({
   gap: 3.2rem;
 }
 
+.header__greeting {
+  align-items: center;
+  display: flex;
+}
+
 .header__greeting p {
   color: var(--light);
+}
+
+.header__greeting img {
+  border: 2px solid var(--light);
+  border-radius: 50%;
+  height: 40px;
+  margin-left: 0.8rem;
+  width: 40px;
 }
 </style>

@@ -30,7 +30,7 @@
 
 <script>
 import Button from '@/components/Button.vue'
-import FirebaseService from '@/services/firebase.js'
+import { mapActions } from 'vuex'
 import { TYPE } from 'vue-toastification'
 import Vue from 'vue'
 
@@ -62,13 +62,12 @@ export default Vue.extend({
     }
   },
   methods: {
+    ...mapActions(['auth']),
     async handleAuthentication() {
       this.isLoading = true
-      const { email, password } = this.credentials
 
       try {
-        const user = await FirebaseService.authenticate(email, password)
-        localStorage.setItem('user', JSON.stringify(user))
+        await this.auth(this.credentials)
         this.$router.push('/dashboard')
       } catch (error) {
         this.$toast(error, {

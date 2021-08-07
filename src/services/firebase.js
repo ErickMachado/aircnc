@@ -29,10 +29,10 @@ class FirebaseService {
       await user.sendEmailVerification()
 
       return {
+        avatar: user.photoURL,
         email: user.email,
         id: user.uid,
-        name: user.displayName,
-        verified: user.emailVerified
+        name: user.displayName
       }
     } catch (error) {
       return Promise.reject(messageTranslate(error.message))
@@ -45,10 +45,10 @@ class FirebaseService {
         .auth()
         .signInWithEmailAndPassword(email, password)
       return {
+        avatar: user.photoURL,
         email: user.email,
         id: user.uid,
-        name: user.displayName,
-        verified: user.emailVerified
+        name: user.displayName
       }
     } catch (error) {
       return Promise.reject(messageTranslate(error.message))
@@ -69,7 +69,13 @@ class FirebaseService {
 
   async createSpot(spot) {
     try {
-      const newSpot = await firebase.database().ref('spots').push(spot)
+      const newSpot = await firebase
+        .database()
+        .ref('spots')
+        .push({
+          bookings: [],
+          ...spot
+        })
       await firebase.storage().ref(`spot_images/${newSpot.key}`).put(spot.image)
     } catch (error) {
       return Promise.reject(error.message)
@@ -78,24 +84,52 @@ class FirebaseService {
 
   async listSpots() {
     const spots = await firebase.database().ref('spots').get()
-    const spotsId = Object.keys(spots.val())
-    const spotsData = Object.values(spots.val())
-    const spotsFormated = []
+    if (spots.val() !== null) {
+      const spotsId = Object.keys(spots.val())
+      const spotsData = Object.values(spots.val())
+      const spotsFormated = []
 
-    spotsId.forEach(async (id, index) => {
-      const image = firebase.storage().ref(`spot_images/${id}`)
-      spotsFormated.push({
-        ...spotsData[index],
-        image: await image.getDownloadURL()
+      spotsId.forEach(async (id, index) => {
+        const image = firebase.storage().ref(`spot_images/${id}`)
+        spotsFormated.push({
+          ...spotsData[index],
+          id: spotsId[index],
+          image: await image.getDownloadURL()
+        })
       })
-    })
 
-    return spotsFormated
+      return spotsFormated
+    }
+
+    return []
   }
 
   async passwordReset(password) {
     try {
       await firebase.auth().currentUser.updatePassword(password)
+    } catch (error) {
+      return Promise.reject(error)
+    }
+  }
+
+  async updateProfileAvatar(userId, avatarBlob) {
+    await firebase.storage().ref(`user_avatar/${userId}`).put(avatarBlob)
+    await firebase.auth().currentUser.updateProfile({
+      photoURL: await firebase
+        .storage()
+        .ref(`user_avatar/${userId}`)
+        .getDownloadURL()
+    })
+    return firebase.auth().currentUser
+  }
+
+  async book(user, spotId, date) {
+    try {
+      await firebase.database().ref(`spots/${spotId}/bookings`).push({
+        date,
+        userId: user.id,
+        username: user.name
+      })
     } catch (error) {
       return Promise.reject(error)
     }

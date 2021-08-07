@@ -1,8 +1,13 @@
 <template>
   <div class="container">
-    <h1>Spots disponíveis 🏢</h1>
-    <ul v-if="spots.length" class="spot__list">
-      <li v-for="(spot, index) in spots" :key="index" class="spot__item">
+    <h1>Spots disponíveis</h1>
+    <h2 v-if="isLoading">Carregando...</h2>
+    <ul v-else class="spot__list">
+      <li
+        v-for="(spot, index) in filteredSpots"
+        :key="index"
+        class="spot__item"
+      >
         <img :src="spot.image" :alt="spot.company" />
         <h2>{{ spot.company }}</h2>
         <span>{{ spot.price | currencyFormat }}</span>
@@ -15,31 +20,58 @@
             {{ tech }}
           </li>
         </ul>
-        <Button @click="openModal" text="Reservar" />
+        <Button @onClick="openModal(spot)" text="Reservar" />
       </li>
     </ul>
-    <div v-else class="no-spots">
+    <div v-show="getSpots.length === 0 && !isLoading" class="no-spots">
       <img src="@/assets/no-spot.svg" alt="" />
       <h2>Nenhum spot disponível no momento 😢</h2>
     </div>
+    <BookingModal
+      @onClose="handleModalClosing"
+      :is-open="isModalOpen"
+      :spot="selectedSpot"
+    />
   </div>
 </template>
 
 <script>
+import BookingModal from '@/components/BookingModal.vue'
 import Button from '@/components/Button.vue'
-import FirebaseService from '@/services/firebase.js'
+import { mapActions, mapGetters } from 'vuex'
 import Vue from 'vue'
 
 export default Vue.extend({
+  beforeRouteEnter(to, from, next) {
+    const user = localStorage.getItem('user')
+    if (user === null) next('/')
+    next()
+  },
   async created() {
-    this.spots = await FirebaseService.listSpots()
+    this.isLoading = true
+    await this.syncUser()
+    await this.listSpots()
+    this.isLoading = false
   },
   components: {
+    BookingModal,
     Button
+  },
+  computed: {
+    ...mapGetters(['getSpots', 'getUser']),
+    filteredSpots() {
+      if (this.getSpots.length) {
+        const { id } = this.getUser
+        return this.getSpots.filter(({ authorId }) => authorId !== id)
+      }
+      return []
+    }
   },
   data() {
     return {
-      spots: []
+      isLoading: true,
+      isModalOpen: false,
+      selectedSpot: {}
     }
   },
   filters: {
@@ -49,14 +81,21 @@ export default Vue.extend({
           ? 'GRATUITO'
           : `${Intl.NumberFormat('pt-br', {
               currency: 'BRL',
+              maximumFractionDigits: 0,
               style: 'currency'
             }).format(value)}/Dia`
       return price
     }
   },
   methods: {
-    openModal() {
-      alert('Abrir modal')
+    ...mapActions(['listSpots', 'syncUser']),
+    handleModalClosing() {
+      this.isModalOpen = false
+      this.selectedSpot = {}
+    },
+    openModal(spot) {
+      this.selectedSpot = spot
+      this.isModalOpen = true
     }
   },
   name: 'SpotList'

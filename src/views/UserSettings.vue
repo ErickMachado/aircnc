@@ -2,20 +2,26 @@
   <div class="container">
     <div class="settings">
       <div class="settings__photo">
-        <input type="file" />
+        <img
+          v-if="!avatarPreviewUrl && getUser.avatar"
+          :src="getUser.avatar"
+          :alt="getUser.name"
+        />
+        <img v-else-if="avatarPreviewUrl" :src="avatarPreviewUrl" alt="" />
+        <input @input="handleAvatarUpload" type="file" />
       </div>
-      <h2>{{ user.name }}</h2>
+      <h2>{{ getUser.name }}</h2>
       <form @submit.prevent="handlePasswordReset">
         <div class="field">
-          <label for="name">Nome</label>
-          <input v-model="user.name" type="text" id="name" disabled />
+          <label>Nome</label>
+          <input v-model="getUser.name" type="text" disabled />
         </div>
         <div class="field">
-          <label for="email">Email</label>
-          <input v-model="user.email" type="email" id="email" disabled />
+          <label>E-mail</label>
+          <input v-model="getUser.email" type="email" disabled />
         </div>
         <div class="field">
-          <label for="password">Nova senha</label>
+          <label for="password">Confirme sua senha</label>
           <input v-model="password" type="password" id="password" />
         </div>
         <Button text="Salvar" :disabled="isDisabled" />
@@ -35,41 +41,53 @@
 <script>
 import Button from '@/components/Button.vue'
 import FirebaseService from '@/services/firebase.js'
-import Vue from 'vue'
+import { mapActions, mapGetters } from 'vuex'
 import { TYPE } from 'vue-toastification'
+import Vue from 'vue'
 
 export default Vue.extend({
   beforeRouteEnter(to, from, next) {
     const user = JSON.parse(localStorage.getItem('user'))
-
     if (user === null) next('/')
-
     next()
   },
-  created() {
-    this.user = JSON.parse(localStorage.getItem('user'))
+  async created() {
+    await this.syncUser()
   },
   components: {
     Button
   },
   computed: {
+    ...mapGetters(['getUser']),
     isDisabled() {
       return !this.password || this.password.length < 6 || this.isLoading
     }
   },
   data() {
     return {
+      avatarBlob: {},
+      avatarPreviewUrl: '',
       isLoading: false,
-      password: '',
-      user: {}
+      password: ''
     }
   },
   methods: {
+    ...mapActions(['updateProfileAvatar', 'logout', 'syncUser']),
+    async handleAvatarUpload(event) {
+      this.avatarBlob = event.target.files[0]
+      this.avatarPreviewUrl = URL.createObjectURL(this.avatarBlob)
+    },
     async handlePasswordReset() {
       this.isLoading = true
+      const { id } = this.getUser
+      const avatarBlob = this.avatarBlob
       try {
         await FirebaseService.passwordReset(this.password)
-        this.$toast('Senha atualizada com sucesso', {
+        await this.updateProfileAvatar({
+          avatarBlob,
+          userId: id
+        })
+        this.$toast('Perfil atualizado com sucesso', {
           type: TYPE.SUCCESS
         })
       } catch (error) {
@@ -81,9 +99,12 @@ export default Vue.extend({
       }
     },
     async handleLogout() {
-      await FirebaseService.logout()
-      localStorage.removeItem('user')
-      this.$router.push('/')
+      try {
+        await this.logout()
+        this.$router.push('/')
+      } catch (error) {
+        Promise.reject(error)
+      }
     }
   },
   name: 'UserSettings'
@@ -105,18 +126,28 @@ export default Vue.extend({
 }
 
 .settings__photo {
-  border: 1px solid var(--primary);
+  align-items: center;
+  background: url('../assets/profile.svg') no-repeat center center;
+  border: 2px solid var(--primary);
   border-radius: 50%;
+  display: flex;
   height: 80px;
+  justify-content: center;
   margin: 0 auto 1.6rem;
+  overflow: hidden;
   position: relative;
   width: 80px;
 }
 
+.settings__photo img {
+  height: 100%;
+  object-fit: cover;
+  width: 100%;
+}
+
 .settings__photo:hover::after {
   align-items: center;
-  background-color: rgba(0, 0, 0, 0.3);
-  border-radius: 50%;
+  background-color: rgba(0, 0, 0, 0.7);
   color: #fff;
   content: 'Trocar foto';
   display: flex;
@@ -162,5 +193,9 @@ export default Vue.extend({
   margin-top: 1.6rem;
   text-align: center;
   width: 100%;
+}
+
+.settings__desconect:hover {
+  text-decoration: underline;
 }
 </style>

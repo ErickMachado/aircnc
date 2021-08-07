@@ -1,11 +1,16 @@
 <template>
-  <button class="btn">{{ text }}</button>
+  <button @click="handleEvent" class="btn">{{ text }}</button>
 </template>
 
 <script>
 import Vue from 'vue'
 
 export default Vue.extend({
+  methods: {
+    handleEvent() {
+      this.$emit('onClick')
+    }
+  },
   name: 'Button',
   props: {
     text: {
