@@ -39,13 +39,14 @@
                 <div class="received-bookings__booking-actions">
                   <img
                     v-show="booking.accepted === undefined"
-                    @click="handleAcceptedBooking(booking, spot.id)"
+                    @click="handleAcceptedBooking(booking, spot.id, 'accept')"
                     src="@/assets/check.svg"
                     alt=""
                     title="Aceitar"
                   />
                   <img
                     v-show="booking.accepted === undefined"
+                    @click="handleAcceptedBooking(booking, spot.id, 'reject')"
                     src="@/assets/x.svg"
                     alt=""
                     title="Recusar"
@@ -106,7 +107,7 @@ export default Vue.extend({
         }
       })
       const bookings = filteredSpots.map((spot) => spot.bookings)
-      this.setSpotBookings(bookings[0])
+      this.setSpotBookings(bookings.concat.apply([], bookings))
 
       return filteredSpots
     }
@@ -129,15 +130,17 @@ export default Vue.extend({
       'acceptBooking',
       'setSpotBookings'
     ]),
-    async handleAcceptedBooking(booking, spotId) {
+    async handleAcceptedBooking(booking, spotId, action) {
       try {
         await this.acceptBooking({
+          action,
           bookingId: booking.id,
           spotId
         })
-        this.getSpotBookings.filter(
+        const book = this.getSpotBookings.filter(
           (book) => book.id === booking.id
-        )[0].accepted = true
+        )
+        book[0].accepted = action === 'accept' ? true : false
         this.$forceUpdate()
       } catch (error) {
         return alert(error.message)

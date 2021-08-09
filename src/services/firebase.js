@@ -145,13 +145,25 @@ class FirebaseService {
     }
   }
 
-  async acceptBooking(bookingId, spotId) {
-    await firebase
-      .database()
-      .ref(`spots/${spotId}/bookings/${bookingId}`)
-      .update({
-        accepted: true
-      })
+  async acceptBooking(bookingId, spotId, action) {
+    switch (action) {
+      case 'accept':
+        await firebase
+          .database()
+          .ref(`spots/${spotId}/bookings/${bookingId}`)
+          .update({
+            accepted: true
+          })
+        break
+      case 'reject':
+        await firebase
+          .database()
+          .ref(`spots/${spotId}/bookings/${bookingId}`)
+          .update({
+            accepted: false
+          })
+        break
+    }
   }
 }
 

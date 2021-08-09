@@ -76,9 +76,9 @@ export default new Vuex.Store({
       }
     },
 
-    async acceptBooking(_, { bookingId, spotId }) {
+    async acceptBooking(_, { action, bookingId, spotId }) {
       try {
-        await Firebase.acceptBooking(bookingId, spotId)
+        await Firebase.acceptBooking(bookingId, spotId, action)
       } catch (error) {
         return Promise.reject(error)
       }
