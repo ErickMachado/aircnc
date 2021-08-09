@@ -1,53 +1,61 @@
 <template>
-  <div class="new-spot container">
-    <h2>Cadastre um novo <strong>spot</strong></h2>
-    <form @submit.prevent="handleSpotCreation">
-      <div class="file-field">
-        <input
-          @input="handleImagePreview"
-          type="file"
-          accept="image/png, image/jpeg"
-        />
-        <img
-          v-if="imagePreviewUrl"
-          class="preview"
-          :src="imagePreviewUrl"
-          alt=""
-        />
-        <img v-else src="@/assets/camera.svg" alt="" />
+  <div id="new-spot">
+    <div class="container">
+      <div class="new-spot">
+        <h2>Cadastre um novo <strong>spot</strong></h2>
+        <form @submit.prevent="handleSpotCreation">
+          <div class="file-field">
+            <input
+              @input="handleImagePreview"
+              type="file"
+              accept="image/png, image/jpeg"
+            />
+            <img
+              v-if="imagePreviewUrl"
+              class="preview"
+              :src="imagePreviewUrl"
+              alt=""
+            />
+            <img v-else src="@/assets/camera.svg" alt="" />
+          </div>
+          <div class="field">
+            <label for="company">Empresa</label>
+            <input
+              v-model.lazy.trim="spot.company"
+              type="text"
+              id="company"
+              placeholder="Nome da empresa"
+            />
+          </div>
+          <div class="field">
+            <label for="price">Preço por dia</label>
+            <input
+              v-model.number="spot.price"
+              type="number"
+              id="price"
+              placeholder="Preço"
+            />
+            <span class="message">Deixe zerado caso seja gratuito</span>
+          </div>
+          <h4>Tecnologias que a empresa utiliza</h4>
+          <div class="field">
+            <input
+              v-model="tagValue"
+              @keydown.enter.prevent="addTag"
+              type="text"
+            />
+            <span class="message">Separe por virgula e aperte enter</span>
+          </div>
+          <ul class="tech__list">
+            <li v-for="(tech, index) in techs" :key="index" class="tech__item">
+              <span>{{ tech }}</span>
+              <span @click="removeTag(index)">X</span>
+            </li>
+          </ul>
+          <Button text="Cadastrar spot" :disabled="isDisabled" />
+        </form>
       </div>
-      <div class="field">
-        <label for="company">Empresa</label>
-        <input
-          v-model.lazy.trim="spot.company"
-          type="text"
-          id="company"
-          placeholder="Nome da empresa"
-        />
-      </div>
-      <div class="field">
-        <label for="price">Preço por dia</label>
-        <input
-          v-model.number="spot.price"
-          type="number"
-          id="price"
-          placeholder="Preço"
-        />
-        <span class="message">Deixe zerado caso seja gratuito</span>
-      </div>
-      <h4>Tecnologias que a empresa utiliza</h4>
-      <div class="field">
-        <input v-model="tagValue" @keydown.enter.prevent="addTag" type="text" />
-        <span class="message">Separe por virgula e aperte enter</span>
-      </div>
-      <ul class="tech__list">
-        <li v-for="(tech, index) in techs" :key="index" class="tech__item">
-          <span>{{ tech }}</span>
-          <span @click="removeTag(index)">X</span>
-        </li>
-      </ul>
-      <Button text="Cadastrar spot" :disabled="isDisabled" />
-    </form>
+    </div>
   </div>
 </template>
 

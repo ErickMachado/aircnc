@@ -68,7 +68,7 @@ export default Vue.extend({
 
       try {
         await this.auth(this.credentials)
-        this.$router.push('/dashboard')
+        this.$router.push('/bookings')
       } catch (error) {
         this.$toast(error, {
           type: TYPE.ERROR

@@ -7,22 +7,22 @@
       <nav class="nav">
         <ul class="nav__list">
           <li class="nav__item">
-            <RouterLink to="/dashboard">
+            <RouterLink to="/bookings">
               <img src="@/assets/home.svg" alt="" />
             </RouterLink>
           </li>
           <li class="nav__item">
-            <RouterLink :to="{ name: 'spots' }">
+            <RouterLink to="/spots">
               <img src="@/assets/pin.svg" alt="" />
             </RouterLink>
           </li>
           <li class="nav__item">
-            <RouterLink :to="{ name: 'new-spot' }">
+            <RouterLink to="/new-spot">
               <img src="@/assets/add.svg" alt="" />
             </RouterLink>
           </li>
           <li class="nav__item">
-            <RouterLink :to="{ name: 'settings' }">
+            <RouterLink to="/settings">
               <img src="@/assets/setup.svg" alt="" />
             </RouterLink>
           </li>

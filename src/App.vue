@@ -1,16 +1,27 @@
 <template>
   <div id="app">
     <LoadingScreen />
-    <RouterView />
+    <Header v-show="isVisible" />
+    <transition name="route" mode="out-in">
+      <RouterView />
+    </transition>
   </div>
 </template>
 
 <script>
+import Header from '@/components/Header'
 import LoadingScreen from '@/components/LoadingScreen.vue'
 import Vue from 'vue'
 
 export default Vue.extend({
+  computed: {
+    isVisible() {
+      const { path } = this.$route
+      return path !== '/signin' && path !== '/signup' && path !== '/recover'
+    }
+  },
   components: {
+    Header,
     LoadingScreen
   },
   name: 'App'
@@ -18,6 +29,17 @@ export default Vue.extend({
 </script>
 
 <style>
+.route-enter,
+.route-leave-to {
+  opacity: 0;
+  transform: translate3d(0, 50px, 0);
+}
+
+.route-enter-active,
+.route-leave-active {
+  transition: all 0.5s ease;
+}
+
 :root {
   --dark: #222;
   --light: #fff;

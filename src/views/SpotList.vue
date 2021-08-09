@@ -1,43 +1,46 @@
 <template>
-  <div class="container">
-    <h1>Spots disponíveis</h1>
-    <h2 v-if="isLoading">Carregando...</h2>
-    <ul v-else class="spot__list">
-      <li
-        v-for="(spot, index) in filteredSpots"
-        :key="index"
-        class="spot__item"
-      >
-        <img :src="spot.image" :alt="spot.company" />
-        <h2>{{ spot.company }}</h2>
-        <span>{{ spot.price | currencyFormat }}</span>
-        <ul class="spot__techs">
-          <li
-            v-for="(tech, index) in spot.techs"
-            :key="index"
-            class="spot__tech"
-          >
-            {{ tech }}
-          </li>
-        </ul>
-        <Button @onClick="openModal(spot)" text="Reservar" />
-      </li>
-    </ul>
-    <div v-show="getSpots.length === 0 && !isLoading" class="no-spots">
-      <img src="@/assets/no-spot.svg" alt="" />
-      <h2>Nenhum spot disponível no momento 😢</h2>
+  <div id="spot-list">
+    <div class="container">
+      <h1>Spots disponíveis</h1>
+      <DotLoading v-if="isLoading" />
+      <ul v-else class="spot__list">
+        <li
+          v-for="(spot, index) in filteredSpots"
+          :key="index"
+          class="spot__item"
+        >
+          <img :src="spot.image" :alt="spot.company" />
+          <h2>{{ spot.company }}</h2>
+          <span>{{ spot.price | currencyFormat }}</span>
+          <ul class="spot__techs">
+            <li
+              v-for="(tech, index) in spot.techs"
+              :key="index"
+              class="spot__tech"
+            >
+              {{ tech }}
+            </li>
+          </ul>
+          <Button @onClick="openModal(spot)" text="Reservar" />
+        </li>
+      </ul>
+      <div v-show="getSpots.length === 0 && !isLoading" class="no-spots">
+        <img src="@/assets/no-spot.svg" alt="" />
+        <h2>Nenhum spot disponível no momento 😢</h2>
+      </div>
+      <BookingModal
+        @onClose="handleModalClosing"
+        :is-open="isModalOpen"
+        :spot="selectedSpot"
+      />
     </div>
-    <BookingModal
-      @onClose="handleModalClosing"
-      :is-open="isModalOpen"
-      :spot="selectedSpot"
-    />
   </div>
 </template>
 
 <script>
 import BookingModal from '@/components/BookingModal.vue'
 import Button from '@/components/Button.vue'
+import DotLoading from '@/components/DotLoading.vue'
 import { mapActions, mapGetters } from 'vuex'
 import Vue from 'vue'
 
@@ -55,7 +58,8 @@ export default Vue.extend({
   },
   components: {
     BookingModal,
-    Button
+    Button,
+    DotLoading
   },
   computed: {
     ...mapGetters(['getSpots', 'getUser']),
@@ -171,5 +175,9 @@ h1 {
   font-weight: 400;
   margin-top: 3.2rem;
   text-align: center;
+}
+
+.dot-loading {
+  margin-top: 6.4rem;
 }
 </style>

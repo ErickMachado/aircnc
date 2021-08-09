@@ -1,4 +1,4 @@
-import Dashboard from '@/views/Dashboard.vue'
+import Bookings from '@/views/Bookings.vue'
 import Login from '@/views/Login.vue'
 import NewSpot from '@/views/NewSpot.vue'
 import NotFound from '@/views/NotFound.vue'
@@ -33,26 +33,24 @@ const routes = [
     redirect: '/signin'
   },
   {
-    component: Dashboard,
-    children: [
-      {
-        component: SpotList,
-        name: 'spots',
-        path: 'spots'
-      },
-      {
-        component: NewSpot,
-        name: 'new-spot',
-        path: 'new-spot'
-      },
-      {
-        component: UserSettings,
-        name: 'settings',
-        path: 'settings'
-      }
-    ],
-    name: 'dashboard',
-    path: '/dashboard'
+    component: Bookings,
+    name: 'bookings',
+    path: '/bookings'
+  },
+  {
+    component: SpotList,
+    name: 'spots',
+    path: '/spots'
+  },
+  {
+    component: NewSpot,
+    name: 'new-spot',
+    path: '/new-spot'
+  },
+  {
+    component: UserSettings,
+    name: 'settings',
+    path: '/settings'
   },
   {
     component: NotFound,

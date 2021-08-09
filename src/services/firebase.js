@@ -26,7 +26,6 @@ class FirebaseService {
       await user.updateProfile({
         displayName: name
       })
-      await user.sendEmailVerification()
 
       return {
         avatar: user.photoURL,
@@ -91,8 +90,10 @@ class FirebaseService {
 
       spotsId.forEach(async (id, index) => {
         const image = firebase.storage().ref(`spot_images/${id}`)
+        const bookings = spotsData[index].bookings
         spotsFormated.push({
           ...spotsData[index],
+          bookings: bookings ? Object.values(spotsData[index].bookings) : [],
           id: spotsId[index],
           image: await image.getDownloadURL()
         })
@@ -125,14 +126,32 @@ class FirebaseService {
 
   async book(user, spotId, date) {
     try {
-      await firebase.database().ref(`spots/${spotId}/bookings`).push({
-        date,
-        userId: user.id,
-        username: user.name
-      })
+      const booking = await firebase
+        .database()
+        .ref(`spots/${spotId}/bookings`)
+        .push({
+          date,
+          userId: user.id,
+          username: user.name
+        })
+      await firebase
+        .database()
+        .ref(`spots/${spotId}/bookings/${booking.key}`)
+        .update({
+          id: booking.key
+        })
     } catch (error) {
       return Promise.reject(error)
     }
+  }
+
+  async acceptBooking(bookingId, spotId) {
+    await firebase
+      .database()
+      .ref(`spots/${spotId}/bookings/${bookingId}`)
+      .update({
+        accepted: true
+      })
   }
 }
 

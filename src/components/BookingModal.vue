@@ -42,7 +42,6 @@ export default Vue.extend({
       const date = this.bookingDate
       const user = this.getUser
       const spot = this.spot
-      console.log(this.spot)
       try {
         await this.book({ date, user, spot })
         this.$toast('Reserva feita com sucesso', {

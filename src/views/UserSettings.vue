@@ -1,39 +1,41 @@
 <template>
-  <div class="container">
-    <div class="settings">
-      <div class="settings__photo">
-        <img
-          v-if="!avatarPreviewUrl && getUser.avatar"
-          :src="getUser.avatar"
-          :alt="getUser.name"
-        />
-        <img v-else-if="avatarPreviewUrl" :src="avatarPreviewUrl" alt="" />
-        <input @input="handleAvatarUpload" type="file" />
+  <div id="settings">
+    <div class="container">
+      <div class="settings">
+        <div class="settings__photo">
+          <img
+            v-if="!avatarPreviewUrl && getUser.avatar"
+            :src="getUser.avatar"
+            :alt="getUser.name"
+          />
+          <img v-else-if="avatarPreviewUrl" :src="avatarPreviewUrl" alt="" />
+          <input @input="handleAvatarUpload" type="file" />
+        </div>
+        <h2>{{ getUser.name }}</h2>
+        <form @submit.prevent="handlePasswordReset">
+          <div class="field">
+            <label>Nome</label>
+            <input v-model="getUser.name" type="text" disabled />
+          </div>
+          <div class="field">
+            <label>E-mail</label>
+            <input v-model="getUser.email" type="email" disabled />
+          </div>
+          <div class="field">
+            <label for="password">Confirme sua senha</label>
+            <input v-model="password" type="password" id="password" />
+          </div>
+          <Button text="Salvar" :disabled="isDisabled" />
+        </form>
+        <button
+          @click="handleLogout"
+          type="button"
+          text="Desconectar do Aircnc"
+          class="settings__desconect"
+        >
+          Desconectar do Aircnc
+        </button>
       </div>
-      <h2>{{ getUser.name }}</h2>
-      <form @submit.prevent="handlePasswordReset">
-        <div class="field">
-          <label>Nome</label>
-          <input v-model="getUser.name" type="text" disabled />
-        </div>
-        <div class="field">
-          <label>E-mail</label>
-          <input v-model="getUser.email" type="email" disabled />
-        </div>
-        <div class="field">
-          <label for="password">Confirme sua senha</label>
-          <input v-model="password" type="password" id="password" />
-        </div>
-        <Button text="Salvar" :disabled="isDisabled" />
-      </form>
-      <button
-        @click="handleLogout"
-        type="button"
-        text="Desconectar do Aircnc"
-        class="settings__desconect"
-      >
-        Desconectar do Aircnc
-      </button>
     </div>
   </div>
 </template>

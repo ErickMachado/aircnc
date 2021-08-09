@@ -56,8 +56,13 @@ export default new Vuex.Store({
       try {
         await Firebase.logout()
         localStorage.removeItem('user')
-        commit('SET_USER', {})
-        commit('SET_SPOTS', {})
+        commit('SET_USER', {
+          avatar: '',
+          email: '',
+          id: '',
+          name: ''
+        })
+        commit('SET_SPOTS', [])
       } catch (error) {
         return Promise.reject(error)
       }
@@ -71,10 +76,24 @@ export default new Vuex.Store({
       }
     },
 
+    async acceptBooking(_, { bookingId, spotId }) {
+      try {
+        await Firebase.acceptBooking(bookingId, spotId)
+      } catch (error) {
+        return Promise.reject(error)
+      }
+    },
+
+    async setSpotBookings({ commit }, bookings) {
+      commit('SET_SPOT_BOOKINGS', bookings)
+    },
+
     async syncUser({ commit, state }) {
       if (state.user.id) return state.user
       const user = JSON.parse(localStorage.getItem('user'))
-      commit('SET_USER', user)
+      if (user !== null) {
+        commit('SET_USER', user)
+      }
     }
   },
   getters: {
@@ -83,6 +102,9 @@ export default new Vuex.Store({
     },
     getSpots(state) {
       return state.spots
+    },
+    getSpotBookings(state) {
+      return state.spotBookings
     }
   },
   mutations: {
@@ -91,10 +113,19 @@ export default new Vuex.Store({
     },
     SET_SPOTS(state, payload) {
       state.spots = payload
+    },
+    SET_SPOT_BOOKINGS(state, payload) {
+      state.spotBookings = payload
     }
   },
   state: {
-    user: {},
-    spots: []
+    user: {
+      avatar: '',
+      email: '',
+      id: '',
+      name: ''
+    },
+    spots: [],
+    spotBookings: []
   }
 })
