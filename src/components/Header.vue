@@ -129,4 +129,10 @@ export default Vue.extend({
   margin-left: 0.8rem;
   width: 40px;
 }
+
+@media screen and (max-width: 425px) {
+  .header__greeting p {
+    display: none;
+  }
+}
 </style>

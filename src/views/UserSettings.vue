@@ -200,4 +200,10 @@ export default Vue.extend({
 .settings__desconect:hover {
   text-decoration: underline;
 }
+
+@media screen and (max-width: 425px) {
+  .settings {
+    margin-top: 3.2rem;
+  }
+}
 </style>

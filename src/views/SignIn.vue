@@ -37,9 +37,7 @@ import Vue from 'vue'
 export default Vue.extend({
   beforeRouteEnter(to, from, next) {
     const user = localStorage.getItem('user')
-
-    if (user) next('/dashboard')
-
+    if (user) next('/bookings')
     next()
   },
   components: {

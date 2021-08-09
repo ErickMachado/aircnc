@@ -5,6 +5,7 @@ import 'firebase/storage'
 import messageTranslate from '@/utils/feedbackMessageTranslate'
 
 class FirebaseService {
+  #auth
   #config = {
     apiKey: process.env.VUE_APP_FIREBASE_API_KEY,
     authDomain: process.env.VUE_APP_FIREBASE_AUTH_DOMAIN,
@@ -13,16 +14,22 @@ class FirebaseService {
     messagingSenderId: process.env.VUE_APP_FIREBASE_MESSAGING_SENDER_ID,
     appId: process.env.VUE_APP_FIREBASE_APP_ID
   }
+  #database
+  #storage
 
   constructor() {
     firebase.initializeApp(this.#config)
+    this.#auth = firebase.auth()
+    this.#database = firebase.database()
+    this.#storage = firebase.storage()
   }
 
   async createAccount(email, name, password) {
     try {
-      const { user } = await firebase
-        .auth()
-        .createUserWithEmailAndPassword(email, password)
+      const { user } = await this.#auth.createUserWithEmailAndPassword(
+        email,
+        password
+      )
       await user.updateProfile({
         displayName: name
       })
@@ -40,9 +47,10 @@ class FirebaseService {
 
   async authenticate(email, password) {
     try {
-      const { user } = await firebase
-        .auth()
-        .signInWithEmailAndPassword(email, password)
+      const { user } = await this.#auth.signInWithEmailAndPassword(
+        email,
+        password
+      )
       return {
         avatar: user.photoURL,
         email: user.email,
@@ -55,12 +63,12 @@ class FirebaseService {
   }
 
   async logout() {
-    await firebase.auth().signOut()
+    await this.#auth.signOut()
   }
 
   async resetPassword(email) {
     try {
-      await firebase.auth().sendPasswordResetEmail(email)
+      await this.#auth.sendPasswordResetEmail(email)
     } catch (error) {
       return Promise.reject(messageTranslate(error.message))
     }
@@ -68,28 +76,24 @@ class FirebaseService {
 
   async createSpot(spot) {
     try {
-      const newSpot = await firebase
-        .database()
-        .ref('spots')
-        .push({
-          bookings: [],
-          ...spot
-        })
-      await firebase.storage().ref(`spot_images/${newSpot.key}`).put(spot.image)
+      const newSpot = await this.#database.ref('spots').push({
+        ...spot
+      })
+      await this.#storage.ref(`spot_images/${newSpot.key}`).put(spot.image)
     } catch (error) {
       return Promise.reject(error.message)
     }
   }
 
   async listSpots() {
-    const spots = await firebase.database().ref('spots').get()
+    const spots = await this.#database.ref('spots').get()
     if (spots.val() !== null) {
       const spotsId = Object.keys(spots.val())
       const spotsData = Object.values(spots.val())
       const spotsFormated = []
 
       spotsId.forEach(async (id, index) => {
-        const image = firebase.storage().ref(`spot_images/${id}`)
+        const image = this.#storage.ref(`spot_images/${id}`)
         const bookings = spotsData[index].bookings
         spotsFormated.push({
           ...spotsData[index],
@@ -107,35 +111,32 @@ class FirebaseService {
 
   async passwordReset(password) {
     try {
-      await firebase.auth().currentUser.updatePassword(password)
+      await this.#auth.currentUser.updatePassword(password)
     } catch (error) {
       return Promise.reject(error)
     }
   }
 
   async updateProfileAvatar(userId, avatarBlob) {
-    await firebase.storage().ref(`user_avatar/${userId}`).put(avatarBlob)
-    await firebase.auth().currentUser.updateProfile({
-      photoURL: await firebase
-        .storage()
+    await this.#storage.ref(`user_avatar/${userId}`).put(avatarBlob)
+    await this.#auth.currentUser.updateProfile({
+      photoURL: await this.#storage
         .ref(`user_avatar/${userId}`)
         .getDownloadURL()
     })
-    return firebase.auth().currentUser
+    return this.#auth.currentUser
   }
 
   async book(user, spotId, date) {
     try {
-      const booking = await firebase
-        .database()
+      const booking = await this.#database
         .ref(`spots/${spotId}/bookings`)
         .push({
           date,
           userId: user.id,
           username: user.name
         })
-      await firebase
-        .database()
+      await this.#database
         .ref(`spots/${spotId}/bookings/${booking.key}`)
         .update({
           id: booking.key
@@ -148,16 +149,14 @@ class FirebaseService {
   async acceptBooking(bookingId, spotId, action) {
     switch (action) {
       case 'accept':
-        await firebase
-          .database()
+        await this.#database
           .ref(`spots/${spotId}/bookings/${bookingId}`)
           .update({
             accepted: true
           })
         break
       case 'reject':
-        await firebase
-          .database()
+        await this.#database
           .ref(`spots/${spotId}/bookings/${bookingId}`)
           .update({
             accepted: false

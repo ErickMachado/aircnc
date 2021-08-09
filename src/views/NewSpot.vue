@@ -251,4 +251,10 @@ export default Vue.extend({
   line-height: 1;
   width: 16px;
 }
+
+@media screen and (max-width: 425px) {
+  .new-spot {
+    margin-top: 3.2rem;
+  }
+}
 </style>

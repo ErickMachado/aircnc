@@ -137,10 +137,8 @@ export default Vue.extend({
           bookingId: booking.id,
           spotId
         })
-        const book = this.getSpotBookings.filter(
-          (book) => book.id === booking.id
-        )
-        book[0].accepted = action === 'accept' ? true : false
+        const book = this.getSpotBookings.find((book) => book.id === booking.id)
+        book.accepted = action === 'accept' ? true : false
         this.$forceUpdate()
       } catch (error) {
         return alert(error.message)

@@ -24,7 +24,7 @@
           <Button @onClick="openModal(spot)" text="Reservar" />
         </li>
       </ul>
-      <div v-show="getSpots.length === 0 && !isLoading" class="no-spots">
+      <div v-show="filteredSpots.length === 0 && !isLoading" class="no-spots">
         <img src="@/assets/no-spot.svg" alt="" />
         <h2>Nenhum spot disponível no momento 😢</h2>
       </div>
@@ -50,10 +50,10 @@ export default Vue.extend({
     if (user === null) next('/')
     next()
   },
-  async created() {
+  created() {
     this.isLoading = true
-    await this.syncUser()
-    await this.listSpots()
+    this.syncUser()
+    this.listSpots()
     this.isLoading = false
   },
   components: {
@@ -109,6 +109,7 @@ export default Vue.extend({
 <style scoped>
 h1 {
   margin-top: 6.4rem;
+  text-align: center;
 }
 
 .spot__list {
@@ -168,6 +169,7 @@ h1 {
 .no-spots img {
   margin: 0 auto;
   max-width: 500px;
+  width: 100%;
 }
 
 .no-spots h2 {

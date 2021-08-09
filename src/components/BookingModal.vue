@@ -47,6 +47,7 @@ export default Vue.extend({
         this.$toast('Reserva feita com sucesso', {
           type: TYPE.SUCCESS
         })
+        this.$emit('onClose')
       } catch (error) {
         this.$toast(error.message, {
           type: TYPE.ERROR
