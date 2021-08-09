@@ -68,9 +68,10 @@ export default new Vuex.Store({
       }
     },
 
-    async book(_, { date, user, spot }) {
+    async book({ dispatch }, { date, user, spot }) {
       try {
         await Firebase.book(user, spot.id, date)
+        await dispatch('syncSpotBookings')
       } catch (error) {
         return Promise.reject(error)
       }
@@ -94,6 +95,11 @@ export default new Vuex.Store({
       if (user !== null) {
         commit('SET_USER', user)
       }
+    },
+
+    async syncSpotBookings({ commit }) {
+      const spots = await Firebase.listSpots()
+      commit('SET_SPOTS', spots)
     }
   },
   getters: {

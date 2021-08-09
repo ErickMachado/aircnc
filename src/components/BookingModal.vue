@@ -19,8 +19,8 @@
 <script>
 import Button from '@/components/Button.vue'
 import { mapActions, mapGetters } from 'vuex'
-import Vue from 'vue'
 import { TYPE } from 'vue-toastification'
+import Vue from 'vue'
 
 export default Vue.extend({
   components: {

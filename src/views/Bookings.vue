@@ -16,10 +16,10 @@
     </div>
     <DotLoading v-if="isLoading" />
     <div v-show="activeTab === 'receivedBookings'" class="received-bookings">
-      <ul class="received-bookings__list">
+      <ul v-if="userSpots.length" class="received-bookings__list">
         <li
-          v-for="(spot, index) in userSpots"
-          :key="index"
+          v-for="spot in userSpots"
+          :key="spot.id"
           class="received-bookings__item"
         >
           <div class="received-bookings__bookings">
@@ -29,8 +29,8 @@
             <ul class="received-bookings__booking-list">
               <li
                 class="received-bookings__booking-item"
-                v-for="(booking, index) in spot.bookings"
-                :key="index"
+                v-for="booking in spot.bookings"
+                :key="booking.id"
               >
                 <div class="received-bookings__booking-info">
                   <span>Visitante: {{ booking.username }}</span>
@@ -69,9 +69,42 @@
           </div>
         </li>
       </ul>
+      <div
+        v-else-if="userBookings.length && !isLoading"
+        class="bookings__empty"
+      >
+        <img src="@/assets/no-spot.svg" alt="" />
+        <div>
+          <p>Nenhum spot cadastrado 😢</p>
+          <RouterLink to="/new-spot">Cadastrar spot</RouterLink>
+        </div>
+      </div>
     </div>
-    <div v-show="activeTab === 'myBookings'" class="received-bookings">
-      <h1>Reservas feitas</h1>
+    <div v-show="activeTab === 'myBookings'" class="bookings">
+      <ul v-if="userBookings.length" class="bookings__list">
+        <li
+          v-for="booking in userBookings"
+          :key="booking.id"
+          class="bookings__item"
+        >
+          <div class="bookings__info">
+            <h2>{{ booking.spot }}</h2>
+            <span>Quando: {{ booking.date | formatDate }}</span>
+          </div>
+          <span v-if="booking.accepted" class="tag is-success">Aceita</span>
+          <span v-else-if="booking.accepted === undefined" class="tag is-warn">
+            Pendente
+          </span>
+          <span v-else class="tag is-error">Recusada</span>
+        </li>
+      </ul>
+      <div v-else class="bookings__empty">
+        <img src="@/assets/no-spot.svg" alt="" />
+        <div>
+          <p>Nenhuma reserva 😢</p>
+          <RouterLink to="/spots">Ver spots</RouterLink>
+        </div>
+      </div>
     </div>
   </div>
 </template>
@@ -99,6 +132,20 @@ export default Vue.extend({
   },
   computed: {
     ...mapGetters(['getSpots', 'getUser', 'getSpotBookings']),
+    userBookings() {
+      const bookings = []
+      for (const spot of this.getSpots) {
+        for (const booking of spot.bookings) {
+          if (booking.userId === this.getUser.id) {
+            bookings.push({
+              spot: spot.company,
+              ...booking
+            })
+          }
+        }
+      }
+      return bookings
+    },
     userSpots() {
       const user = this.getUser
       const filteredSpots = this.getSpots.filter((spot) => {
@@ -107,7 +154,7 @@ export default Vue.extend({
         }
       })
       const bookings = filteredSpots.map((spot) => spot.bookings)
-      this.setSpotBookings(bookings.concat.apply([], bookings))
+      this.setSpotBookings(bookings.flat(1))
 
       return filteredSpots
     }
@@ -176,7 +223,8 @@ export default Vue.extend({
   color: var(--light);
 }
 
-.received-bookings__list {
+.received-bookings__list,
+.bookings__list {
   display: flex;
   flex-direction: column;
   gap: 1.6rem;
@@ -184,7 +232,8 @@ export default Vue.extend({
   margin: 0 auto;
 }
 
-.received-bookings__item {
+.received-bookings__item,
+.bookings__item {
   background-color: var(--light);
   border-radius: 0.2rem;
   box-shadow: 0px 9px 80px rgba(0, 0, 0, 0.07),
@@ -206,10 +255,16 @@ export default Vue.extend({
   gap: 1.6rem;
 }
 
-.received-bookings__booking-item {
-  align-items: flex-start;
+.received-bookings__booking-item,
+.bookings__item {
+  align-items: center;
   display: flex;
   justify-content: space-between;
+}
+
+.received-bookings__booking-item + li {
+  border-top: 1px solid rgba(0, 0, 0, 0.2);
+  padding-top: 1.6rem;
 }
 
 .received-bookings__booking-info {
@@ -218,7 +273,8 @@ export default Vue.extend({
   gap: 0.4rem;
 }
 
-.received-bookings__booking-item span {
+.received-bookings__booking-item span,
+.bookings__item span {
   color: rgba(0, 0, 0, 0.5);
 }
 
@@ -232,21 +288,52 @@ export default Vue.extend({
   width: 28px;
 }
 
-.tag.is-success {
-  background-color: rgba(102, 222, 147, 0.3);
-  border: 1px solid #66de93;
+.bookings__empty {
+  align-items: center;
+  display: flex;
+  flex-direction: column;
+  gap: 3.2rem;
+  margin: 12.8rem auto;
+  max-width: 600px;
+  width: 100%;
+}
+
+.bookings__empty div {
+  text-align: center;
+}
+
+.bookings__empty a {
+  margin-top: 0.8rem;
+}
+
+.tag {
   border-radius: 999px;
-  color: #66de93;
+  font-weight: 600;
   font-size: 1.4rem;
   padding: 0.2rem 0.8rem;
 }
 
+.tag.is-success {
+  background-color: rgba(0, 189, 170, 0.2);
+  border: 1px solid #00bdaa;
+  color: #00bdaa;
+}
+
 .tag.is-error {
-  background-color: rgba(205, 17, 59, 0.3);
+  background-color: rgba(205, 17, 59, 0.2);
   border: 1px solid #cd113b;
-  border-radius: 999px;
   color: #cd113b;
-  font-size: 1.4rem;
-  padding: 0.2rem 0.8rem;
+}
+
+.tag.is-warn {
+  background-color: rgba(255, 183, 64, 0.2);
+  border: 1px solid #ffb740;
+  color: #ffb740;
+}
+
+.dot-loading {
+  margin: 12.8rem auto;
+  max-width: 600px;
+  width: 100%;
 }
 </style>
